@@ -4,171 +4,165 @@ using UnityEngine.InputSystem;
 
 public class SnakeMovement : MonoBehaviour
 {
-    [Header("Base Stats")]
-    public float moveSpeed = 6f;
-    public float turnSpeed = 220f;
-    public float segmentSpacing = 0.5f; 
-    [Header("References")]
-    public List<SnakeSegment> segments = new List<SnakeSegment>();
+    [Header("Grid & Movement Settings")]
+    [Tooltip("Розмір однієї клітинки в юнітах Unity")]
+    public float gridSize = 1f;
 
-    private LinkedList<PathPoint> _pathHistory = new LinkedList<PathPoint>();
-    private float _totalPathLength = 0f;
-    private Vector2 _lastRecordedPos;
+    [Tooltip("Час між кроками в секундах (менше = швидше)")]
+    public float stepInterval = 0.2f;
 
-    private const float MinRecordDistance = 0.05f;
+    [Tooltip("Відстань між сегментами в клітинках (можна десятковими, наприклад 0.8 чи 1.5)")]
+    [Range(0.2f, 5f)]
+    public float segmentSpacing = 1f;
+
+    [Header("Segments")]
+    public GameObject segmentPrefab;
+    private readonly List<Transform> _segments = new List<Transform>();
+
+    // Логічні координати на сітці
+    private Vector2Int _gridPosition;
+    private Vector2Int _gridDirection = Vector2Int.right;
+    private Vector2Int _inputDirection = Vector2Int.right;
+
+    // Історія позицій для сегментів
+    private readonly List<Vector2Int> _positionHistory = new List<Vector2Int>();
+
+    private float _stepTimer;
 
     void Start()
     {
-        _lastRecordedPos = transform.position;
-        _pathHistory.AddFirst(new PathPoint(transform.position, transform.rotation, 0f));
+        _gridPosition = new Vector2Int(
+            Mathf.RoundToInt(transform.position.x / gridSize),
+            Mathf.RoundToInt(transform.position.y / gridSize)
+        );
+        transform.position = new Vector3(_gridPosition.x * gridSize, _gridPosition.y * gridSize, 0f);
+
+        _positionHistory.Add(_gridPosition);
     }
 
     void Update()
     {
-        HandleSteering();
-        MoveForward();
-        RecordPath();
-        UpdateSegments();
-        TrimHistory();
-    }
+        HandleInput();
 
-    private void HandleSteering()
-    {
-        float horizontal = 0f;
-
-        // Перевіряємо клавіатуру через новий Input System
-        if (Keyboard.current != null)
+        _stepTimer += Time.deltaTime;
+        if (_stepTimer >= stepInterval)
         {
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
-            {
-                horizontal -= 1f;
-            }
-            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
-            {
-                horizontal += 1f;
-            }
+            _stepTimer = 0f;
+            PerformStep();
         }
 
-        if (Mathf.Abs(horizontal) > 0.01f)
+        SmoothVisuals();
+    }
+
+    private void HandleInput()
+    {
+        if (Keyboard.current == null) return;
+
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            transform.Rotate(Vector3.forward, -horizontal * turnSpeed * Time.deltaTime);
+            AddSegment();
         }
-    }
 
-    private void MoveForward()
-    {
-        transform.position += transform.up * (moveSpeed * Time.deltaTime);
-    }
+        // Якщо є сегменти — забороняємо розворот на 180°. Якщо сегментів 0 — можна повертати куди завгодно!
+        bool hasSegments = _segments.Count > 0;
 
-    private void RecordPath(bool isTeleport = false)
-    {
-        float dist = Vector2.Distance(transform.position, _lastRecordedPos);
-
-        if (dist >= MinRecordDistance || isTeleport)
+        if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
         {
-            _pathHistory.AddFirst(new PathPoint(transform.position, transform.rotation, dist, isTeleport));
-            _totalPathLength += dist;
-            _lastRecordedPos = transform.position;
+            if (!hasSegments || _gridDirection != Vector2Int.down)
+                _inputDirection = Vector2Int.up;
         }
-    }
-
-    private void UpdateSegments()
-    {
-        if (segments.Count == 0) return;
-
-        float targetDistance = 0f;
-
-        for (int i = 0; i < segments.Count; i++)
+        else if (Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame)
         {
-            // Кожен сегмент може мати свій кастомний Spacing з модифікаторів
-            targetDistance += segments[i].customSpacing > 0 ? segments[i].customSpacing : segmentSpacing;
-
-            // Інтерполюємо позицію вздовж історії
-            GetPointAtDistance(targetDistance, out Vector2 targetPos, out Quaternion targetRot);
-
-            segments[i].transform.position = targetPos;
-            segments[i].transform.rotation = targetRot;
+            if (!hasSegments || _gridDirection != Vector2Int.up)
+                _inputDirection = Vector2Int.down;
+        }
+        else if (Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame)
+        {
+            if (!hasSegments || _gridDirection != Vector2Int.right)
+                _inputDirection = Vector2Int.left;
+        }
+        else if (Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame)
+        {
+            if (!hasSegments || _gridDirection != Vector2Int.left)
+                _inputDirection = Vector2Int.right;
         }
     }
 
-    // Алгоритм пошуку точки на точній дистанції назад по траєкторії
-    private void GetPointAtDistance(float targetDist, out Vector2 position, out Quaternion rotation)
+    private void PerformStep()
     {
-        // Якщо запитувана відстань ще не пройдена головою — беремо поточну точку хвоста
-        if (_pathHistory.Count == 0)
+        _gridDirection = _inputDirection;
+
+        // Крок голови на сітці
+        _gridPosition += _gridDirection;
+
+        // Записуємо нову позицію голови на початок історії
+        _positionHistory.Insert(0, _gridPosition);
+
+        // Обрізка історії
+        int maxNeededHistory = Mathf.CeilToInt((_segments.Count + 1) * segmentSpacing) + 3;
+        while (_positionHistory.Count > maxNeededHistory)
         {
-            position = transform.position;
-            rotation = transform.rotation;
-            return;
+            _positionHistory.RemoveAt(_positionHistory.Count - 1);
         }
 
-        float accumulatedDist = 0f;
-        var node = _pathHistory.First;
-
-        // Враховуємо шлях від поточної позиції голови до найпершої записаної точки
-        float distToFirst = Vector2.Distance(transform.position, node.Value.Position);
-        if (targetDist <= distToFirst)
-        {
-            float t = targetDist / distToFirst;
-            position = Vector2.Lerp(transform.position, node.Value.Position, t);
-            rotation = Quaternion.Lerp(transform.rotation, node.Value.Rotation, t);
-            return;
-        }
-
-        accumulatedDist += distToFirst;
-
-        // Ітеруємося по вузлах історії
-        while (node.Next != null)
-        {
-            var current = node.Value;
-            var next = node.Next.Value;
-            float segLength = next.DistanceFromLast;
-
-            if (accumulatedDist + segLength >= targetDist)
-            {
-                float remain = targetDist - accumulatedDist;
-                float t = remain / segLength;
-
-                // Якщо між точками був телепорт — не робимо Lerp через усю мапу!
-                if (next.IsTeleport)
-                {
-                    position = current.Position;
-                    rotation = current.Rotation;
-                }
-                else
-                {
-                    position = Vector2.Lerp(current.Position, next.Position, t);
-                    rotation = Quaternion.Lerp(current.Rotation, next.Rotation, t);
-                }
-                return;
-            }
-
-            accumulatedDist += segLength;
-            node = node.Next;
-        }
-
-        // Якщо буфер закінчився — віддаємо останню доступну точку
-        position = node.Value.Position;
-        rotation = node.Value.Rotation;
+        // Поворот спрайта голови:
+        // Якщо твій спрайт спочатку дивиться ВГОРУ — використовуй: - 90f
+        // Якщо твій спрайт спочатку дивиться ВПРАВО — просто прибери "- 90f"
+        float angle = Mathf.Atan2(_gridDirection.y, _gridDirection.x) * Mathf.Rad2Deg - 90f;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
-    private void TrimHistory()
+    private void SmoothVisuals()
     {
-        // Потрібна довжина історії = сума відстаней усіх сегментів + невеликий запас
-        float maxNeededDistance = (segments.Count + 2) * segmentSpacing;
+        float t = Mathf.Clamp01(_stepTimer / stepInterval);
 
-        while (_totalPathLength > maxNeededDistance && _pathHistory.Last != null && _pathHistory.Count > 2)
+        // Плавний рух голови
+        Vector3 targetHeadWorld = new Vector3(_gridPosition.x * gridSize, _gridPosition.y * gridSize, 0f);
+        Vector3 prevHeadWorld = _positionHistory.Count > 1
+            ? new Vector3(_positionHistory[1].x * gridSize, _positionHistory[1].y * gridSize, 0f)
+            : targetHeadWorld;
+
+        transform.position = Vector3.Lerp(prevHeadWorld, targetHeadWorld, t);
+
+        // Плавний рух сегментів вздовж історії із дробовою відстанню
+        for (int i = 0; i < _segments.Count; i++)
         {
-            _totalPathLength -= _pathHistory.Last.Value.DistanceFromLast;
-            _pathHistory.RemoveLast();
+            float targetOffset = (i + 1) * segmentSpacing;
+
+            // Знаходимо цільову позицію та попередню (звідки сегмент рухається)
+            Vector3 targetPos = GetPositionAtStepOffset(targetOffset);
+            Vector3 prevPos = GetPositionAtStepOffset(targetOffset + 1f);
+
+            _segments[i].position = Vector3.Lerp(prevPos, targetPos, t);
         }
     }
 
-    // Викликати цей метод, якщо підібрав фрукт-телепорт або стрибнув через портал
-    public void TeleportTo(Vector2 newPosition)
+    // Допоміжний метод: вираховує координати в просторі для будь-якого дробового кроку назад в історії
+    private Vector3 GetPositionAtStepOffset(float stepOffset)
     {
-        transform.position = newPosition;
-        _lastRecordedPos = newPosition;
-        RecordPath(isTeleport: true);
+        if (_positionHistory.Count == 0) return transform.position;
+
+        int baseIndex = Mathf.FloorToInt(stepOffset);
+        float fraction = stepOffset - baseIndex;
+
+        if (baseIndex >= _positionHistory.Count - 1)
+        {
+            var lastPos = _positionHistory[_positionHistory.Count - 1];
+            return new Vector3(lastPos.x * gridSize, lastPos.y * gridSize, 0f);
+        }
+
+        Vector3 posA = new Vector3(_positionHistory[baseIndex].x * gridSize, _positionHistory[baseIndex].y * gridSize, 0f);
+        Vector3 posB = new Vector3(_positionHistory[baseIndex + 1].x * gridSize, _positionHistory[baseIndex + 1].y * gridSize, 0f);
+
+        return Vector3.Lerp(posA, posB, fraction);
+    }
+
+    public void AddSegment()
+    {
+        float targetOffset = (_segments.Count + 1) * segmentSpacing;
+        Vector3 spawnWorldPos = GetPositionAtStepOffset(targetOffset);
+
+        GameObject newSeg = Instantiate(segmentPrefab, spawnWorldPos, Quaternion.identity);
+        _segments.Add(newSeg.transform);
     }
 }
