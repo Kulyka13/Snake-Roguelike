@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement; // Потрібно для перезавантаження сцени
 
 public class SnakeMovement : MonoBehaviour
 {
@@ -11,13 +12,19 @@ public class SnakeMovement : MonoBehaviour
     [Tooltip("Час між кроками в секундах (менше = швидше)")]
     public float stepInterval = 0.2f;
 
-    [Tooltip("Відстань між сегментами в клітинках (можна десятковими, наприклад 0.8 чи 1.5)")]
+    [Tooltip("Відстань між сегментами в клітинках")]
     [Range(0.2f, 5f)]
     public float segmentSpacing = 1f;
 
     [Header("Segments")]
     public GameObject segmentPrefab;
     private readonly List<Transform> _segments = new List<Transform>();
+
+    [Header("Food / Spawning")]
+    public Food food;
+
+    // Стан гри
+    private bool _isDead = false;
 
     // Логічні координати на сітці
     private Vector2Int _gridPosition;
@@ -38,10 +45,26 @@ public class SnakeMovement : MonoBehaviour
         transform.position = new Vector3(_gridPosition.x * gridSize, _gridPosition.y * gridSize, 0f);
 
         _positionHistory.Add(_gridPosition);
+
+        if (food != null)
+        {
+            food.Init(gridSize);
+            food.Respawn(GetOccupiedGridPositions());
+        }
     }
 
     void Update()
     {
+        if (_isDead)
+        {
+            // Після смерті перезапуск на клавішу R
+            if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+            {
+                RestartGame();
+            }
+            return;
+        }
+
         HandleInput();
 
         _stepTimer += Time.deltaTime;
@@ -58,12 +81,6 @@ public class SnakeMovement : MonoBehaviour
     {
         if (Keyboard.current == null) return;
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            AddSegment();
-        }
-
-        // Якщо є сегменти — забороняємо розворот на 180°. Якщо сегментів 0 — можна повертати куди завгодно!
         bool hasSegments = _segments.Count > 0;
 
         if (Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame)
@@ -91,11 +108,25 @@ public class SnakeMovement : MonoBehaviour
     private void PerformStep()
     {
         _gridDirection = _inputDirection;
+        Vector2Int nextHeadPos = _gridPosition + _gridDirection;
+
+        // ПЕРЕВІРКА НА ВРІЗАННЯ У ВЛАСНЕ ТІЛО
+        if (CheckSelfCollision(nextHeadPos))
+        {
+            Die();
+            return;
+        }
 
         // Крок голови на сітці
-        _gridPosition += _gridDirection;
+        _gridPosition = nextHeadPos;
 
-        // Записуємо нову позицію голови на початок історії
+        // Перевірка збору яблука
+        if (food != null && _gridPosition == food.gridPosition)
+        {
+            EatFood();
+        }
+
+        // Записуємо нову позицію голови
         _positionHistory.Insert(0, _gridPosition);
 
         // Обрізка історії
@@ -105,11 +136,107 @@ public class SnakeMovement : MonoBehaviour
             _positionHistory.RemoveAt(_positionHistory.Count - 1);
         }
 
-        // Поворот спрайта голови:
-        // Якщо твій спрайт спочатку дивиться ВГОРУ — використовуй: - 90f
-        // Якщо твій спрайт спочатку дивиться ВПРАВО — просто прибери "- 90f"
-        float angle = Mathf.Atan2(_gridDirection.y, _gridDirection.x) * Mathf.Rad2Deg - 90f;
+        // Поворот спрайта голови
+        float angle = Mathf.Atan2(_gridDirection.y, _gridDirection.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, angle);
+    }
+
+    private bool CheckSelfCollision(Vector2Int targetPosition)
+    {
+        // Змійка не може врізатися в себе, якщо тіло занадто коротке (менше 4 клітинок дистанції)
+        if (_segments.Count < 3) return false;
+
+        // Перевіряємо сегменти починаючи з 3-го, бо перші два чисто фізично не можуть перетнутися з головою
+        for (int i = 2; i < _segments.Count; i++)
+        {
+            float offset = (i + 1) * segmentSpacing;
+            int idxA = Mathf.FloorToInt(offset);
+            int idxB = Mathf.CeilToInt(offset);
+
+            if (idxA < _positionHistory.Count && _positionHistory[idxA] == targetPosition)
+                return true;
+
+            if (idxB < _positionHistory.Count && _positionHistory[idxB] == targetPosition)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void Die()
+    {
+        _isDead = true;
+
+        // 1. Ховаємо спрайт голови, щоб візуально вона зникла
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = false;
+
+        // 2. Знищуємо всі сегменти хвоста зі сцени
+        for (int i = 0; i < _segments.Count; i++)
+        {
+            if (_segments[i] != null)
+            {
+                Destroy(_segments[i].gameObject);
+            }
+        }
+        _segments.Clear();
+
+        Debug.Log("Змійка загинула! Натисни 'R', щоб спробувати знову.");
+    }
+
+    private void RestartGame()
+    {
+        _isDead = false;
+
+        // 1. Повертаємо видимість голови
+        var sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = true;
+
+        // 2. Скидаємо позицію голови в центр (або стартову клітинку)
+        _gridPosition = Vector2Int.zero;
+        transform.position = Vector3.zero;
+
+        // 3. Скидаємо напрямок руху на стартовий (вправо)
+        _gridDirection = Vector2Int.right;
+        _inputDirection = Vector2Int.right;
+        transform.rotation = Quaternion.Euler(0, 0, 0); // кут 0 для руху вправо
+
+        // 4. Очищаємо історію та скидаємо таймер кроку
+        _positionHistory.Clear();
+        _positionHistory.Add(_gridPosition);
+        _stepTimer = 0f;
+
+        // 5. Переспавнюємо яблуко на вільне місце
+        if (food != null)
+        {
+            food.Respawn(GetOccupiedGridPositions());
+        }
+    }
+
+    private void EatFood()
+    {
+        AddSegment();
+        food.Respawn(GetOccupiedGridPositions());
+    }
+
+    private List<Vector2Int> GetOccupiedGridPositions()
+    {
+        HashSet<Vector2Int> occupied = new HashSet<Vector2Int> { _gridPosition };
+
+        for (int i = 0; i < _segments.Count; i++)
+        {
+            float offset = (i + 1) * segmentSpacing;
+            int idxA = Mathf.FloorToInt(offset);
+            int idxB = Mathf.CeilToInt(offset);
+
+            if (idxA < _positionHistory.Count)
+                occupied.Add(_positionHistory[idxA]);
+
+            if (idxB < _positionHistory.Count)
+                occupied.Add(_positionHistory[idxB]);
+        }
+
+        return new List<Vector2Int>(occupied);
     }
 
     private void SmoothVisuals()
@@ -124,12 +251,11 @@ public class SnakeMovement : MonoBehaviour
 
         transform.position = Vector3.Lerp(prevHeadWorld, targetHeadWorld, t);
 
-        // Плавний рух сегментів вздовж історії із дробовою відстанню
+        // Плавний рух сегментів
         for (int i = 0; i < _segments.Count; i++)
         {
             float targetOffset = (i + 1) * segmentSpacing;
 
-            // Знаходимо цільову позицію та попередню (звідки сегмент рухається)
             Vector3 targetPos = GetPositionAtStepOffset(targetOffset);
             Vector3 prevPos = GetPositionAtStepOffset(targetOffset + 1f);
 
@@ -137,7 +263,6 @@ public class SnakeMovement : MonoBehaviour
         }
     }
 
-    // Допоміжний метод: вираховує координати в просторі для будь-якого дробового кроку назад в історії
     private Vector3 GetPositionAtStepOffset(float stepOffset)
     {
         if (_positionHistory.Count == 0) return transform.position;
