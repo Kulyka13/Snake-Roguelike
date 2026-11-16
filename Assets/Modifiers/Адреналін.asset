@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: "\u0410\u0434\u0440\u0435\u043D\u0430\u043B\u0456\u043D"
   m_EditorClassIdentifier: Assembly-CSharp::SnakeModifier
   modifierName: "\u0410\u0434\u0440\u0435\u043D\u0430\u043B\u0456\u043D"
-  description: 
+  description: "\u041D\u0430\u0437\u0430\u0432\u0436\u0434\u0438 \u043F\u0440\u0438\u0441\u043A\u043E\u0440\u044E\u0454 \u0440\u0443\u0445 \u0437\u043C\u0456\u0439\u043A\u0438"
   type: 0
   value: 0.04
+  isUnique: 0
