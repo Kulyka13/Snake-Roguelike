@@ -44,6 +44,7 @@ public class Food : MonoBehaviour
             gridPosition = availablePositions[randomIndex];
 
             transform.position = new Vector3(gridPosition.x * _gridSize, gridPosition.y * _gridSize, 0f);
+            SpriteFadeIn.Play(gameObject, 1f, 0.25f);
         }
     }
 }

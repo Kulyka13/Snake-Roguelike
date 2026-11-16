@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1798401133255677095}
   - component: {fileID: 6787265360766113876}
-  - component: {fileID: 2963650431975461298}
+  - component: {fileID: -4994269172272596775}
   m_Layer: 0
-  m_Name: Apple
+  m_Name: MutagenFood
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 3823987740182259302}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -3, z: 0}
+  m_LocalPosition: {x: -5, y: -3, z: 0}
   m_LocalScale: {x: 0.8, y: 0.8, z: 0.8}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: c987393aa8906da46bb6a9093672d0a9, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 26681f572e40f7545aadd84942614805, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -93,7 +93,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
---- !u!114 &2963650431975461298
+--- !u!114 &-4994269172272596775
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -102,9 +102,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 3823987740182259302}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 55300a852375f184bb43e8730be832d4, type: 3}
+  m_Script: {fileID: 11500000, guid: ef3affaca2a97e34aa0c34f18647a540, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Food
-  gridPosition: {x: 0, y: -3}
+  m_EditorClassIdentifier: Assembly-CSharp::MutagenFood
   minBounds: {x: -10, y: -5}
   maxBounds: {x: 10, y: 5}
+  maxStepsAlive: 25
+  availableModifiers:
+  - {fileID: 11400000, guid: 2050cd735b9521b41bda12e90a30986e, type: 2}
+  - {fileID: 11400000, guid: ba9d9f54ac4f55b4ea2d238c5eba57b3, type: 2}
+  - {fileID: 11400000, guid: 42bd8167bf999ba47a1a26401e3fdccb, type: 2}
+  - {fileID: 11400000, guid: e0fe94e0f856c1d499f0109320cec8ad, type: 2}
+  - {fileID: 11400000, guid: 63ec981ae90419949b99104e4739f7f2, type: 2}
+  - {fileID: 11400000, guid: 5f74960de7d4d404ba28ee304c72a747, type: 2}
+  - {fileID: 11400000, guid: 4948010b22207d047a2bb863ab943de2, type: 2}
+  - {fileID: 11400000, guid: f52a3371b77094d47aec9a038de081aa, type: 2}
+  - {fileID: 11400000, guid: 85197fc492e08944f978278df6152f42, type: 2}
+  selectionUI: {fileID: 1289095540625769345, guid: 4c57db4b05a74ef4cb472bfefb495ffe, type: 3}
+  gridPosition: {x: -5, y: -3}
+  isActive: 1
