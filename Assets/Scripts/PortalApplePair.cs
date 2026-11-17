@@ -86,8 +86,18 @@ public class PortalApplePair : MonoBehaviour
     public void CleanupAndDestroy()
     {
         _onExpired?.Invoke(this);
-        if (_portalAObj != null) Destroy(_portalAObj);
-        if (_portalBObj != null) Destroy(_portalBObj);
+
+        if (_portalAObj != null)
+        {
+            _portalAObj.transform.SetParent(null);
+            SpriteFadeOut.PlayAndDestroy(_portalAObj, 0.3f);
+        }
+        if (_portalBObj != null)
+        {
+            _portalBObj.transform.SetParent(null);
+            SpriteFadeOut.PlayAndDestroy(_portalBObj, 0.3f);
+        }
+
         Destroy(gameObject);
     }
 }

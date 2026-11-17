@@ -174,7 +174,7 @@ public class SnakeBody : MonoBehaviour
             int lastIndex = _segments.Count - 1;
             if (_segments[lastIndex] != null)
             {
-                Destroy(_segments[lastIndex].gameObject);
+                SpriteFadeOut.PlayAndDestroy(_segments[lastIndex].gameObject, 0.25f);
             }
             _segments.RemoveAt(lastIndex);
         }
@@ -220,7 +220,15 @@ public class SnakeBody : MonoBehaviour
     public void HideAll()
     {
         if (_headSpriteRenderer != null) _headSpriteRenderer.enabled = false;
-        ClearSegments();
+
+        for (int i = 0; i < _segments.Count; i++)
+        {
+            if (_segments[i] != null)
+            {
+                SpriteFadeOut.PlayAndDestroy(_segments[i].gameObject, 0.3f);
+            }
+        }
+        _segments.Clear();
     }
 
     public void ResetBody(Vector2Int startGridPos)

@@ -41,12 +41,16 @@ public class MutagenFood : MonoBehaviour
 
         if (_remainingTime <= 0f)
         {
-            Hide();
+            FadeOutAndHide();
         }
     }
 
     public void Spawn(List<Vector2Int> occupiedPositions)
     {
+        // Ось ця перевірка: якщо попереднє зникнення ще не закінчилося — перериваємо його
+        var oldFade = GetComponent<SpriteFadeOut>();
+        if (oldFade != null) Destroy(oldFade);
+
         HashSet<Vector2Int> blocked = new HashSet<Vector2Int>(occupiedPositions);
 
         for (int attempt = 0; attempt < 50; attempt++)
@@ -82,7 +86,7 @@ public class MutagenFood : MonoBehaviour
     public void Consume(SnakeMovement snake)
     {
         if (!isActive) return;
-        Hide();
+        FadeOutAndHide();
 
         if (selectionUI != null && availableModifiers != null && availableModifiers.Count > 0)
         {
@@ -90,8 +94,18 @@ public class MutagenFood : MonoBehaviour
         }
     }
 
+    public void FadeOutAndHide()
+    {
+        isActive = false;
+        _remainingTime = 0f;
+        SpriteFadeOut.PlayAndHide(gameObject, 0.25f);
+    }
+
     public void Hide()
     {
+        var oldFade = GetComponent<SpriteFadeOut>();
+        if (oldFade != null) Destroy(oldFade);
+
         isActive = false;
         _remainingTime = 0f;
         if (_sr != null)

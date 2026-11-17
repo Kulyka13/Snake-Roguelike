@@ -52,10 +52,17 @@ public class ArenaSpawner : MonoBehaviour
             SpawnRottenApple();
         }
 
-        if (_effects.hasPortalApples && _effects.portalSpawnTimer <= 0f)
+        if (_effects.hasPortalApples)
         {
-            _effects.portalSpawnTimer = _effects.portalSpawnInterval;
-            SpawnPortalPair();
+            if (_portalPairs.Count > 0)
+            {
+                _effects.portalSpawnTimer = _effects.portalSpawnInterval;
+            }
+            else if (_effects.portalSpawnTimer <= 0f)
+            {
+                _effects.portalSpawnTimer = _effects.portalSpawnInterval;
+                SpawnPortalPair();
+            }
         }
     }
 
@@ -148,7 +155,7 @@ public class ArenaSpawner : MonoBehaviour
                     snake.SetCoolStyle(false);
                     if (snake.SegmentCount < 2)
                     {
-                        Destroy(bApple.gameObject);
+                        SpriteFadeOut.PlayAndDestroy(bApple.gameObject, 0.15f);
                         return false; // Сигнал смерті
                     }
                     snake.RemoveLastSegments(2);

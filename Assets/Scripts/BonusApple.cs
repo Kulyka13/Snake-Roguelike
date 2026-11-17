@@ -52,7 +52,8 @@ public class BonusApple : MonoBehaviour
         if (_lifeTime <= 0f)
         {
             _onExpired?.Invoke(this);
-            Destroy(gameObject);
+            enabled = false;
+            SpriteFadeOut.PlayAndDestroy(gameObject, 0.25f);
         }
     }
 }
