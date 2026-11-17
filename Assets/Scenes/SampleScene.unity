@@ -11348,6 +11348,7 @@ GameObject:
   - component: {fileID: 1048433531}
   - component: {fileID: 1048433530}
   - component: {fileID: 1048433529}
+  - component: {fileID: 1048433533}
   - component: {fileID: 1048433532}
   m_Layer: 0
   m_Name: SnakeHead
@@ -11370,20 +11371,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakeMovement
   gridSize: 1
   stepInterval: 0.2
-  segmentSpacing: 0.9
-  arenaMinBounds: {x: -10, y: -5}
-  arenaMaxBounds: {x: 10, y: 5}
-  segmentPrefab: {fileID: 5180485991938099886, guid: 143baf19578e74041829a8fb0109c186, type: 3}
-  normalHeadSprite: {fileID: 21300000, guid: 3f7baedd87017694ca780550e50818f6, type: 3}
-  coolStyleHeadSprite: {fileID: 21300000, guid: f898aa51ce31b10468b0604852c0f04b, type: 3}
-  food: {fileID: 163084097}
-  bonusApplePrefab: {fileID: 3823987740182259302, guid: 19cfe6c3cc5145a47b60ab2b66b972fe, type: 3}
-  explosionAppleSprite: {fileID: 21300000, guid: c987393aa8906da46bb6a9093672d0a9, type: 3}
-  rottenAppleSprite: {fileID: 21300000, guid: 5950dc59929e5984081b050959a454f6, type: 3}
-  portalASprite: {fileID: 21300000, guid: f42bfcabe9d9abf458c3d001289a4a47, type: 3}
-  portalBSprite: {fileID: 21300000, guid: 1fad218d825cce84687b5b79ac1d2442, type: 3}
-  mutagenFood: {fileID: 1689790587}
-  applesPerMutagen: 3
+  arenaSpawner: {fileID: 1552148983}
 --- !u!212 &1048433530
 SpriteRenderer:
   serializedVersion: 3
@@ -11502,6 +11490,22 @@ MonoBehaviour:
   bulletTimeMinSpeed: 0.35
   bulletTimeRecoverySpeed: 1.5
   inversionRewardMultiplier: 3
+--- !u!114 &1048433533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1048433528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40bb274c77414c249a10d57ac12e3ea2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SnakeBody
+  segmentPrefab: {fileID: 5180485991938099886, guid: 143baf19578e74041829a8fb0109c186, type: 3}
+  segmentSpacing: 0.9
+  normalHeadSprite: {fileID: 21300000, guid: 3f7baedd87017694ca780550e50818f6, type: 3}
+  coolStyleHeadSprite: {fileID: 21300000, guid: f898aa51ce31b10468b0604852c0f04b, type: 3}
 --- !u!1 &1131747584
 GameObject:
   m_ObjectHideFlags: 0
@@ -11674,6 +11678,60 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4f09c5bc6906c314994ed52b33b98cb2, type: 3}
+--- !u!1 &1552148981
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1552148982}
+  - component: {fileID: 1552148983}
+  m_Layer: 0
+  m_Name: ArenaSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1552148982
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1552148981}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.29751, y: -1.06443, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1552148983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1552148981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1804331a23a785447a79385d995bd381, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArenaSpawner
+  arenaMinBounds: {x: -10, y: -5}
+  arenaMaxBounds: {x: 10, y: 5}
+  food: {fileID: 163084097}
+  mutagenFood: {fileID: 1689790587}
+  applesPerMutagen: 3
+  bonusApplePrefab: {fileID: 3823987740182259302, guid: 19cfe6c3cc5145a47b60ab2b66b972fe, type: 3}
+  explosionAppleSprite: {fileID: 21300000, guid: c987393aa8906da46bb6a9093672d0a9, type: 3}
+  rottenAppleSprite: {fileID: 21300000, guid: 5950dc59929e5984081b050959a454f6, type: 3}
+  portalASprite: {fileID: 21300000, guid: f42bfcabe9d9abf458c3d001289a4a47, type: 3}
+  portalBSprite: {fileID: 21300000, guid: 1fad218d825cce84687b5b79ac1d2442, type: 3}
 --- !u!114 &1647261289 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2088439120144756379, guid: 4c57db4b05a74ef4cb472bfefb495ffe, type: 3}
@@ -12371,6 +12429,7 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 619394802}
   - {fileID: 1048433531}
+  - {fileID: 1552148982}
   - {fileID: 1949754835}
   - {fileID: 1400066605}
   - {fileID: 1131747586}
