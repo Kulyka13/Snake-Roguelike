@@ -107,7 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MutagenFood
   minBounds: {x: -10, y: -5}
   maxBounds: {x: 10, y: 5}
-  maxStepsAlive: 25
+  maxTimeAlive: 5
   availableModifiers:
   - {fileID: 11400000, guid: 2050cd735b9521b41bda12e90a30986e, type: 2}
   - {fileID: 11400000, guid: ba9d9f54ac4f55b4ea2d238c5eba57b3, type: 2}

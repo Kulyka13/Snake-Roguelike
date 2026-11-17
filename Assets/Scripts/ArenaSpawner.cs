@@ -360,4 +360,14 @@ public class ArenaSpawner : MonoBehaviour
             food.Respawn(initialSnakePositions);
         }
     }
+    public Vector2Int WrapPosition(Vector2Int pos)
+    {
+        if (pos.x > arenaMaxBounds.x) pos.x = arenaMinBounds.x;
+        else if (pos.x < arenaMinBounds.x) pos.x = arenaMaxBounds.x;
+
+        if (pos.y > arenaMaxBounds.y) pos.y = arenaMinBounds.y;
+        else if (pos.y < arenaMinBounds.y) pos.y = arenaMaxBounds.y;
+
+        return pos;
+    }
 }

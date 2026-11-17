@@ -127,6 +127,11 @@ public class SnakeMovement : MonoBehaviour
         _gridDirection = _inputDirection;
         Vector2Int nextHeadPos = _gridPosition + _gridDirection;
 
+        if (arenaSpawner != null)
+        {
+            nextHeadPos = arenaSpawner.WrapPosition(nextHeadPos);
+        }
+
         bool isGhost = _effects != null && _effects.HasGhost;
         bool isMidDash = _effects != null && _effects.dashStepsRemaining > 1;
 

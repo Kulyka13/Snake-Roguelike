@@ -11473,20 +11473,20 @@ MonoBehaviour:
   dashStepsRemaining: 0
   hasAppleExplosion: 0
   explosionAppleCount: 3
-  explosionAppleDuration: 5
+  explosionAppleDuration: 3
   hasRottenApples: 0
-  rottenSpawnInterval: 7
-  rottenAppleDuration: 8
+  rottenSpawnInterval: 10
+  rottenAppleDuration: 5
   rottenSpawnTimer: 0
   hasCoolStyle: 0
   hasPortalApples: 0
-  portalSpawnInterval: 9
-  portalDuration: 10
+  portalSpawnInterval: 10
+  portalDuration: 15
   portalSpawnTimer: 0
-  magnetRadius: 2
+  magnetRadius: 1
   shieldSpeedMultiplier: 0.8
-  shieldBreakMinSpeed: 0.15
-  shieldBreakSlowDuration: 1.2
+  shieldBreakMinSpeed: 0.05
+  shieldBreakSlowDuration: 2
   bulletTimeMinSpeed: 0.35
   bulletTimeRecoverySpeed: 1.5
   inversionRewardMultiplier: 3
@@ -11722,8 +11722,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1804331a23a785447a79385d995bd381, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArenaSpawner
-  arenaMinBounds: {x: -10, y: -5}
-  arenaMaxBounds: {x: 10, y: 5}
+  arenaMinBounds: {x: -11, y: -6}
+  arenaMaxBounds: {x: 11, y: 6}
   food: {fileID: 163084097}
   mutagenFood: {fileID: 1689790587}
   applesPerMutagen: 3

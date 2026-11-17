@@ -19,6 +19,7 @@ public class SnakeBody : MonoBehaviour
     private float _baseSegmentSpacing;
     private SpriteRenderer _headSpriteRenderer;
     private SnakeEffectsManager _effects;
+    private bool _wasGhost = false;
 
     public void Init(float gridSize, Vector2Int startGridPos, SnakeEffectsManager effects)
     {
@@ -123,6 +124,7 @@ public class SnakeBody : MonoBehaviour
 
         if (_effects.HasGhost)
         {
+            _wasGhost = true;
             if (_effects.ghostTime <= 2f)
             {
                 float alpha = Mathf.Lerp(0.25f, 0.85f, Mathf.PingPong(Time.time * 8f, 1f));
@@ -133,8 +135,9 @@ public class SnakeBody : MonoBehaviour
                 SetSnakeAlpha(0.5f);
             }
         }
-        else if (_headSpriteRenderer != null && _headSpriteRenderer.color.a < 1f)
+        else if (_wasGhost)
         {
+            _wasGhost = false;
             SetSnakeAlpha(1f);
         }
     }
@@ -293,6 +296,12 @@ public class SnakeBody : MonoBehaviour
         {
             if (_segments[i] != null)
             {
+                var fadeIn = _segments[i].GetComponent<SpriteFadeIn>();
+                if (fadeIn != null)
+                {
+                    fadeIn.targetAlpha = alpha;
+                }
+
                 var sr = _segments[i].GetComponent<SpriteRenderer>();
                 if (sr != null)
                 {
