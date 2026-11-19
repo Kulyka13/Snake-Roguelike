@@ -19,15 +19,23 @@ public class ArenaSpawner : MonoBehaviour
     public Sprite portalASprite;
     public Sprite portalBSprite;
 
+    [Header("Розміри бонусних об'єктів (Scale)")]
+    public float miniAppleScale = 0.7f;
+    public float rottenAppleScale = 1f;
+    public float miniRottenAppleScale = 0.7f;
+    public float portalScale = 1f;
+
     private readonly List<BonusApple> _bonusApples = new List<BonusApple>();
     private readonly List<PortalApplePair> _portalPairs = new List<PortalApplePair>();
 
     private float _gridSize = 1f;
     private int _applesEatenCount = 0;
     private SnakeEffectsManager _effects;
+    private SnakeMovement _snake;
 
     public void Init(float gridSize, SnakeEffectsManager effects, List<Vector2Int> initialSnakePositions)
     {
+        _snake = _effects != null ? _effects.GetComponent<SnakeMovement>() : FindAnyObjectByType<SnakeMovement>();
         _gridSize = gridSize;
         _effects = effects;
 
@@ -122,7 +130,6 @@ public class ArenaSpawner : MonoBehaviour
         return false;
     }
 
-    // Обробляє підбір усіх яблук. Повертає false, якщо гниле яблуко вбило змійку
     public bool ProcessPickups(SnakeMovement snake, Vector2Int headPos)
     {
         // 1. Звичайне яблуко
@@ -150,12 +157,31 @@ public class ArenaSpawner : MonoBehaviour
             if (IsWithinPickupRange(headPos, bApple.gridPosition))
             {
                 _bonusApples.RemoveAt(i);
-                if (bApple.isRotten)
+                Vector2Int applePos = bApple.gridPosition;
+                bool wasRotten = bApple.isRotten;
+                bool shouldExplode = bApple.canExplode;
+
+                SpriteFadeOut.PlayAndDestroy(bApple.gameObject, 0.15f);
+
+                if (wasRotten)
                 {
+                    // Якщо є "Яблучний вибух" і це велике гниле яблуко — розкидаємо 3 малі гнилі копії
+                    if (shouldExplode && _effects != null && _effects.hasAppleExplosion)
+                    {
+                        TriggerAppleExplosion(snake, applePos, _effects.explosionAppleCount, true);
+                    }
+
+                    // Перевіряємо, чи рятує Міцний панцир (Щит)
+                    if (_effects != null && _effects.TryAbsorbHit())
+                    {
+                        Debug.Log("Міцний панцир захистив від гнилого яблука! Сегменти та Крутий стиль збережено.");
+                        continue;
+                    }
+
+                    // Якщо щита немає — знімаємо окуляри та 2 сегменти
                     snake.SetCoolStyle(false);
                     if (snake.SegmentCount < 2)
                     {
-                        SpriteFadeOut.PlayAndDestroy(bApple.gameObject, 0.15f);
                         return false; // Сигнал смерті
                     }
                     snake.RemoveLastSegments(2);
@@ -165,7 +191,6 @@ public class ArenaSpawner : MonoBehaviour
                 {
                     snake.AddSegment();
                 }
-                Destroy(bApple.gameObject);
             }
         }
 
@@ -193,7 +218,7 @@ public class ArenaSpawner : MonoBehaviour
 
         if (_effects != null && _effects.hasAppleExplosion)
         {
-            TriggerAppleExplosion(snake, eatenPos, _effects.explosionAppleCount);
+            TriggerAppleExplosion(snake, eatenPos, _effects.explosionAppleCount, false);
         }
 
         if (mutagenFood != null && !mutagenFood.isActive && _applesEatenCount % applesPerMutagen == 0)
@@ -237,7 +262,7 @@ public class ArenaSpawner : MonoBehaviour
         return new List<Vector2Int>(occupied);
     }
 
-    private void TriggerAppleExplosion(SnakeMovement snake, Vector2Int center, int count)
+    private void TriggerAppleExplosion(SnakeMovement snake, Vector2Int center, int count, bool spawnRotten)
     {
         if (bonusApplePrefab == null) return;
 
@@ -257,6 +282,9 @@ public class ArenaSpawner : MonoBehaviour
         }
 
         int spawnCount = Mathf.Min(count, candidates.Count);
+        Sprite targetSprite = spawnRotten ? rottenAppleSprite : explosionAppleSprite;
+        float duration = spawnRotten ? _effects.rottenAppleDuration : _effects.explosionAppleDuration;
+
         for (int i = 0; i < spawnCount; i++)
         {
             int idx = Random.Range(0, candidates.Count);
@@ -270,17 +298,17 @@ public class ArenaSpawner : MonoBehaviour
             BonusApple bonus = obj.GetComponent<BonusApple>();
             if (bonus == null) bonus = obj.AddComponent<BonusApple>();
 
-            bonus.Init(spawnPos, _gridSize, _effects.explosionAppleDuration, false, explosionAppleSprite, b => _bonusApples.Remove(b));
+            float targetScale = spawnRotten ? miniRottenAppleScale : miniAppleScale;
+            bonus.Init(spawnPos, _gridSize, duration, spawnRotten, false, targetScale, targetSprite, b => _bonusApples.Remove(b));
             _bonusApples.Add(bonus);
         }
     }
 
     private void SpawnRottenApple()
     {
-        var snake = FindFirstObjectByType<SnakeMovement>();
-        if (bonusApplePrefab == null || snake == null) return;
+        if (bonusApplePrefab == null || _snake == null) return;
 
-        var occupied = new HashSet<Vector2Int>(GetAllOccupiedPositions(snake));
+        var occupied = new HashSet<Vector2Int>(GetAllOccupiedPositions(_snake));
 
         for (int attempt = 0; attempt < 30; attempt++)
         {
@@ -298,7 +326,8 @@ public class ArenaSpawner : MonoBehaviour
                 BonusApple rotten = obj.GetComponent<BonusApple>();
                 if (rotten == null) rotten = obj.AddComponent<BonusApple>();
 
-                rotten.Init(pos, _gridSize, _effects.rottenAppleDuration, true, rottenAppleSprite, b => _bonusApples.Remove(b));
+                // Велике гниле яблуко має масштаб 1.0f і canExplode = true
+                rotten.Init(pos, _gridSize, _effects.rottenAppleDuration, true, true, rottenAppleScale, rottenAppleSprite, b => _bonusApples.Remove(b));
                 _bonusApples.Add(rotten);
                 return;
             }
@@ -307,10 +336,9 @@ public class ArenaSpawner : MonoBehaviour
 
     private void SpawnPortalPair()
     {
-        var snake = FindFirstObjectByType<SnakeMovement>();
-        if (bonusApplePrefab == null || snake == null) return;
+        if (bonusApplePrefab == null || _snake == null) return;
 
-        var occupied = new HashSet<Vector2Int>(GetAllOccupiedPositions(snake));
+        var occupied = new HashSet<Vector2Int>(GetAllOccupiedPositions(_snake));
         List<Vector2Int> freeCells = new List<Vector2Int>();
 
         for (int x = arenaMinBounds.x; x <= arenaMaxBounds.x; x++)
@@ -333,7 +361,7 @@ public class ArenaSpawner : MonoBehaviour
 
         GameObject pairObj = new GameObject("PortalApplePair");
         PortalApplePair pair = pairObj.AddComponent<PortalApplePair>();
-        pair.Init(posA, posB, bonusApplePrefab, portalASprite, portalBSprite, _gridSize, _effects.portalDuration, p => _portalPairs.Remove(p));
+        pair.Init(posA, posB, bonusApplePrefab, portalASprite, portalBSprite, portalScale, _gridSize, _effects.portalDuration, p => _portalPairs.Remove(p));
         _portalPairs.Add(pair);
     }
 

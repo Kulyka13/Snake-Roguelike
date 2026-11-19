@@ -11421,7 +11421,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 6
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 3f7baedd87017694ca780550e50818f6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a5abd82c67bac594fac7c1b7c3adafbc, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -11504,8 +11504,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SnakeBody
   segmentPrefab: {fileID: 5180485991938099886, guid: 143baf19578e74041829a8fb0109c186, type: 3}
   segmentSpacing: 0.9
-  normalHeadSprite: {fileID: 21300000, guid: 3f7baedd87017694ca780550e50818f6, type: 3}
-  coolStyleHeadSprite: {fileID: 21300000, guid: f898aa51ce31b10468b0604852c0f04b, type: 3}
+  normalHeadSprite: {fileID: 21300000, guid: a5abd82c67bac594fac7c1b7c3adafbc, type: 3}
+  coolStyleHeadSprite: {fileID: 21300000, guid: ca38c535517d7f14d904e7d34190091d, type: 3}
 --- !u!1 &1131747584
 GameObject:
   m_ObjectHideFlags: 0
@@ -11729,9 +11729,13 @@ MonoBehaviour:
   applesPerMutagen: 3
   bonusApplePrefab: {fileID: 3823987740182259302, guid: 19cfe6c3cc5145a47b60ab2b66b972fe, type: 3}
   explosionAppleSprite: {fileID: 21300000, guid: c987393aa8906da46bb6a9093672d0a9, type: 3}
-  rottenAppleSprite: {fileID: 21300000, guid: 5950dc59929e5984081b050959a454f6, type: 3}
+  rottenAppleSprite: {fileID: 21300000, guid: 8436784429a35f44db954cac925ff45c, type: 3}
   portalASprite: {fileID: 21300000, guid: f42bfcabe9d9abf458c3d001289a4a47, type: 3}
   portalBSprite: {fileID: 21300000, guid: 1fad218d825cce84687b5b79ac1d2442, type: 3}
+  miniAppleScale: 0.55
+  rottenAppleScale: 0.8
+  miniRottenAppleScale: 0.55
+  portalScale: 0.9
 --- !u!114 &1647261289 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2088439120144756379, guid: 4c57db4b05a74ef4cb472bfefb495ffe, type: 3}

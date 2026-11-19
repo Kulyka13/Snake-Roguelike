@@ -139,7 +139,6 @@ public class SnakeMovement : MonoBehaviour
         {
             if (_effects != null && _effects.TryAbsorbHit())
             {
-                SetCoolStyle(false);
                 _stepProgress = 0f;
                 return;
             }

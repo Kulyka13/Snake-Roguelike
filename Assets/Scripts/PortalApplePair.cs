@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PortalApplePair : MonoBehaviour
@@ -14,7 +15,7 @@ public class PortalApplePair : MonoBehaviour
     private SpriteRenderer _srB;
     private System.Action<PortalApplePair> _onExpired;
 
-    public void Init(Vector2Int posA, Vector2Int posB, GameObject prefab, Sprite spriteA, Sprite spriteB, float gridSize, float duration, System.Action<PortalApplePair> onExpired)
+    public void Init(Vector2Int posA, Vector2Int posB, GameObject prefab, Sprite spriteA, Sprite spriteB, float scale, float gridSize, float duration, Action<PortalApplePair> onExpired)
     {
         portalAPos = posA;
         portalBPos = posB;
@@ -23,6 +24,8 @@ public class PortalApplePair : MonoBehaviour
 
         _portalAObj = CreatePortalVisual(prefab, posA, gridSize, spriteA, new Color(0.2f, 0.7f, 1f, 1f), out _srA);
         _portalBObj = CreatePortalVisual(prefab, posB, gridSize, spriteB, new Color(0.2f, 1f, 0.85f, 1f), out _srB);
+        if (_portalAObj != null) _portalAObj.transform.localScale = Vector3.one * scale;
+        if (_portalBObj != null) _portalBObj.transform.localScale = Vector3.one * scale;
     }
 
     private GameObject CreatePortalVisual(GameObject prefab, Vector2Int gridPos, float gridSize, Sprite customSprite, Color fallbackColor, out SpriteRenderer sr)

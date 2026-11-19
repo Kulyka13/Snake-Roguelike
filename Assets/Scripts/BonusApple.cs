@@ -1,39 +1,36 @@
+using System;
 using UnityEngine;
 
 public class BonusApple : MonoBehaviour
 {
-    public Vector2Int gridPosition;
-    public bool isRotten = false;
+    [HideInInspector] public Vector2Int gridPosition;
+    [HideInInspector] public bool isRotten = false;
+    [HideInInspector] public bool canExplode = false;
 
     private float _lifeTime;
     private SpriteRenderer _sr;
-    private System.Action<BonusApple> _onExpired;
+    private Action<BonusApple> _onExpired;
 
-    public void Init(Vector2Int gridPos, float gridSize, float duration, bool rotten, Sprite customSprite, System.Action<BonusApple> onExpired)
+    public void Init(Vector2Int pos, float gridSize, float duration, bool rotten, bool explodesOnEat, float scale, Sprite customSprite, Action<BonusApple> onExpired)
     {
-        gridPosition = gridPos;
+        gridPosition = pos;
         isRotten = rotten;
+        canExplode = explodesOnEat;
         _lifeTime = duration;
         _onExpired = onExpired;
 
-        transform.position = new Vector3(gridPos.x * gridSize, gridPos.y * gridSize, 0f);
-        _sr = GetComponent<SpriteRenderer>();
+        transform.position = new Vector3(pos.x * gridSize, pos.y * gridSize, 0f);
+        transform.localScale = Vector3.one * scale;
 
+        _sr = GetComponent<SpriteRenderer>();
         if (_sr != null)
         {
-            if (customSprite != null)
-            {
-                _sr.sprite = customSprite;
-                _sr.color = Color.white;
-            }
-            else
-            {
-                _sr.color = isRotten ? new Color(0.45f, 0.2f, 0.55f, 1f) : new Color(1f, 0.55f, 0.1f, 1f);
-                if (!isRotten) transform.localScale *= 0.8f;
-            }
+            _sr.enabled = true;
+            if (customSprite != null) _sr.sprite = customSprite;
+            else if (rotten) _sr.color = new Color(0.55f, 0.35f, 0.25f, 1f);
         }
 
-        SpriteFadeIn.Play(gameObject, 1f, 0.25f);
+        SpriteFadeIn.Play(gameObject, 1f, 0.2f);
     }
 
     void Update()
