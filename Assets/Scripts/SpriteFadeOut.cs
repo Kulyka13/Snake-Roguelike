@@ -27,9 +27,21 @@ public class SpriteFadeOut : MonoBehaviour
 
         // Якщо об'єкт ще не встиг до кінця з'явитися — прибираємо SpriteFadeIn, щоб не було конфлікту
         var fadeIn = target.GetComponent<SpriteFadeIn>();
-        if (fadeIn != null) Destroy(fadeIn);
+        if (fadeIn != null)
+        {
+            if (Application.isPlaying) Destroy(fadeIn);
+            else DestroyImmediate(fadeIn);
+        }
 
         var sr = target.GetComponent<SpriteRenderer>();
+
+        if (!Application.isPlaying)
+        {
+            if (destroy) DestroyImmediate(target);
+            else if (sr != null) sr.enabled = false;
+            return;
+        }
+
         if (sr == null || !sr.enabled)
         {
             if (destroy) Destroy(target);
