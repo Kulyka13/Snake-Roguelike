@@ -12,6 +12,7 @@ public class SnakeMovement : MonoBehaviour
 
     [Header("References")]
     public ArenaSpawner arenaSpawner;
+    public ScoreManager scoreManager;
 
     public int SegmentCount => _body != null ? _body.SegmentCount : 0;
 
@@ -166,6 +167,7 @@ public class SnakeMovement : MonoBehaviour
             {
                 _gridPosition = exitPortal.Value;
                 AddSegment();
+                if (scoreManager != null) scoreManager.AddScore(scoreManager.portalPoints, _effects);
             }
 
             if (!arenaSpawner.ProcessPickups(this, _gridPosition))
@@ -195,7 +197,7 @@ public class SnakeMovement : MonoBehaviour
     {
         _isDead = true;
         _body.HideAll();
-        Debug.Log("Змійка загинула! Натисни 'R', щоб спробувати знову.");
+        if (scoreManager != null) scoreManager.ShowGameOver();
     }
 
     private void RestartGame()
@@ -218,6 +220,10 @@ public class SnakeMovement : MonoBehaviour
         if (arenaSpawner != null)
         {
             arenaSpawner.ResetArena(GetOccupiedGridPositions());
+        }
+        if (scoreManager != null)
+        {
+            scoreManager.ResetRun();
         }
     }
 

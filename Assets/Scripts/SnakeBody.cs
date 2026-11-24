@@ -8,6 +8,7 @@ public class SnakeBody : MonoBehaviour
     public float segmentSpacing = 0.9f;
     public Sprite normalHeadSprite;
     public Sprite coolStyleHeadSprite;
+    public Sprite inversionHeadSprite;
 
     public int SegmentCount => _segments.Count;
     public List<Vector2Int> PositionHistory => _positionHistory;
@@ -122,6 +123,8 @@ public class SnakeBody : MonoBehaviour
     {
         if (_effects == null) return;
 
+        UpdateHeadSprite();
+
         if (_effects.HasGhost)
         {
             _wasGhost = true;
@@ -145,13 +148,26 @@ public class SnakeBody : MonoBehaviour
     public void SetCoolStyle(bool active)
     {
         if (_effects != null) _effects.hasCoolStyle = active;
+        UpdateHeadSprite();
+    }
+    private void UpdateHeadSprite()
+    {
+        if (_headSpriteRenderer == null) return;
 
-        if (_headSpriteRenderer != null)
+        Sprite targetSprite = normalHeadSprite;
+
+        if (_effects != null && _effects.HasInversion && inversionHeadSprite != null)
         {
-            if (active && coolStyleHeadSprite != null)
-                _headSpriteRenderer.sprite = coolStyleHeadSprite;
-            else if (!active && normalHeadSprite != null)
-                _headSpriteRenderer.sprite = normalHeadSprite;
+            targetSprite = inversionHeadSprite;
+        }
+        else if (_effects != null && _effects.hasCoolStyle && coolStyleHeadSprite != null)
+        {
+            targetSprite = coolStyleHeadSprite;
+        }
+
+        if (targetSprite != null && _headSpriteRenderer.sprite != targetSprite)
+        {
+            _headSpriteRenderer.sprite = targetSprite;
         }
     }
 

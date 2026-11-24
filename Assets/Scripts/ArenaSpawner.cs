@@ -7,9 +7,10 @@ public class ArenaSpawner : MonoBehaviour
     public Vector2Int arenaMinBounds = new Vector2Int(-10, -5);
     public Vector2Int arenaMaxBounds = new Vector2Int(10, 5);
 
-    [Header("Основна їжа та мутаген")]
+    [Header("Основна їжа, мутаген та рахунок")]
     public Food food;
     public MutagenFood mutagenFood;
+    public ScoreManager scoreManager;
     public int applesPerMutagen = 3;
 
     [Header("Бонусні об'єкти та кастомні спрайти")]
@@ -141,6 +142,7 @@ public class ArenaSpawner : MonoBehaviour
         // 2. Мутагенне яблуко
         if (mutagenFood != null && mutagenFood.isActive && IsWithinPickupRange(headPos, mutagenFood.gridPosition))
         {
+            if (scoreManager != null) scoreManager.AddScore(scoreManager.mutagenPoints, _effects);
             mutagenFood.Consume(snake);
         }
 
@@ -190,6 +192,7 @@ public class ArenaSpawner : MonoBehaviour
                 else
                 {
                     snake.AddSegment();
+                    if (scoreManager != null) scoreManager.AddScore(scoreManager.miniApplePoints, _effects);
                 }
             }
         }
@@ -212,6 +215,11 @@ public class ArenaSpawner : MonoBehaviour
         }
 
         _applesEatenCount++;
+
+        if (scoreManager != null)
+        {
+            scoreManager.AddScore(scoreManager.regularApplePoints, _effects);
+        }
 
         var occupied = GetAllOccupiedPositions(snake);
         food.Respawn(occupied);

@@ -11,6 +11,7 @@ public class ModifierSelectionUI : MonoBehaviour
     public TMP_Text[] titleTexts;     // Назви на кнопках (3 шт.)
     public TMP_Text[] descTexts;      // Описи на кнопках (3 шт.)
 
+    public ScoreManager scoreManager;
     private SnakeMovement _targetSnake;
     private List<SnakeModifier> _currentChoices = new List<SnakeModifier>();
 
@@ -24,6 +25,7 @@ public class ModifierSelectionUI : MonoBehaviour
 
     public void ShowChoices(List<SnakeModifier> allModifiers, SnakeMovement snake)
     {
+        if (scoreManager != null) scoreManager.SetHudVisible(false);
         if (allModifiers == null || allModifiers.Count == 0)
         {
             Debug.LogError("ModifierSelectionUI: список модифікаторів порожній!");
@@ -91,6 +93,7 @@ public class ModifierSelectionUI : MonoBehaviour
 
     private void SelectModifier(int index)
     {
+        if (scoreManager != null) scoreManager.SetHudVisible(true);
         if (_targetSnake != null && index >= 0 && index < _currentChoices.Count)
         {
             _currentChoices[index].Apply(_targetSnake);
